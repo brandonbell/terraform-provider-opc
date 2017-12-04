@@ -7,12 +7,25 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"runtime"
 	"time"
 
 	"github.com/hashicorp/go-oracle-terraform/opc"
 )
 
 const DEFAULT_MAX_RETRIES = 1
+const USER_AGENT_HEADER = "User-Agent"
+
+var (
+	// defaultUserAgent builds a string containing the Go version, system archityecture and OS,
+	// and the go-autorest version.
+	defaultUserAgent = fmt.Sprintf("Go/%s (%s-%s) go-oracle-terraform/%s",
+		runtime.Version(),
+		runtime.GOARCH,
+		runtime.GOOS,
+		Version(),
+	)
+)
 
 // Client represents an authenticated compute client, with compute credentials and an api client.
 type Client struct {
@@ -23,6 +36,7 @@ type Client struct {
 	APIEndpoint    *url.URL
 	httpClient     *http.Client
 	MaxRetries     *int
+	UserAgent      *string
 	logger         opc.Logger
 	loglevel       opc.LogLevelType
 }
@@ -35,9 +49,13 @@ func NewClient(c *opc.Config) (*Client, error) {
 		Password:       c.Password,
                 ContainerPath:  c.ContainerPath,
 		APIEndpoint:    c.APIEndpoint,
+		UserAgent:      &defaultUserAgent,
 		httpClient:     c.HTTPClient,
 		MaxRetries:     c.MaxRetries,
 		loglevel:       c.LogLevel,
+	}
+	if c.UserAgent != nil {
+		client.UserAgent = c.UserAgent
 	}
 
 	// Setup logger; defaults to stdout
@@ -64,38 +82,6 @@ func NewClient(c *opc.Config) (*Client, error) {
 	}
 
 	return client, nil
-}
-
-// This builds an http request.
-// After calling this you need to add the authentication. Header/Cookie/etc
-// Then call ExecuteRequest and pass in the return value of this method
-// It is split up to add additional authentication that is Oracle API dependent.
-// DEPRECATED
-func (c *Client) BuildRequest(method, path string, body interface{}) (*http.Request, error) {
-	// Parse URL Path
-	urlPath, err := url.Parse(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// Marshall request body
-	var requestBody io.ReadSeeker
-	var marshaled []byte
-	if body != nil {
-		marshaled, err = json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-		requestBody = bytes.NewReader(marshaled)
-	}
-
-	// Create request
-	req, err := http.NewRequest(method, c.formatURL(urlPath), requestBody)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // Marshalls the request body and returns the resulting byte slice
@@ -130,6 +116,8 @@ func (c *Client) BuildRequestBody(method, path string, body []byte) (*http.Reque
 	if err != nil {
 		return nil, err
 	}
+	// Adding UserAgent Header
+	req.Header.Add(USER_AGENT_HEADER, *c.UserAgent)
 
 	return req, nil
 }
@@ -147,6 +135,8 @@ func (c *Client) BuildNonJSONRequest(method, path string, body io.ReadSeeker) (*
 	if err != nil {
 		return nil, err
 	}
+	// Adding UserAgentHeader
+	req.Header.Add(USER_AGENT_HEADER, *c.UserAgent)
 
 	return req, nil
 }
