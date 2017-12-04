@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+        "log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -84,6 +85,14 @@ func (c *ComputeClient) getUserName() string {
 	return fmt.Sprintf(CMP_USERNAME, *c.client.IdentityDomain, *c.client.UserName)
 }
 
+func (c *ComputeClient) getContainerPath() string {
+	if *c.client.ContainerPath != "" { 
+		return fmt.Sprintf(CMP_USERNAME, *c.client.IdentityDomain, *c.client.ContainerPath)
+	} else {
+		return c.getUserName()
+	}
+}
+
 func (c *ComputeClient) getQualifiedACMEName(name string) string {
 	if name == "" {
 		return ""
@@ -103,7 +112,14 @@ func (c *ComputeClient) getQualifiedName(name string) string {
 	if strings.HasPrefix(name, "/oracle") || strings.HasPrefix(name, "/Compute-") {
 		return name
 	}
-	return fmt.Sprintf(CMP_QUALIFIED_NAME, c.getUserName(), name)
+	//return fmt.Sprintf(CMP_QUALIFIED_NAME, c.getUserName(), name)
+	return fmt.Sprintf(CMP_QUALIFIED_NAME, c.getContainerPath(), name)
+}
+
+func (c *ComputeClient) getQualifiedVCableName(name string) string {
+        log.Printf("[DEBUG] QualifiedVCableName: %s", name)
+        return name
+//	return fmt.Sprintf(CMP_QUALIFIED_NAME, c.getUserName(), c.getUnqualifiedName(name))
 }
 
 func (c *ComputeClient) getObjectPath(root, name string) string {

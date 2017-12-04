@@ -17,6 +17,7 @@ import (
 
 type Config struct {
 	User             string
+	ContainerPath    string
 	Password         string
 	IdentityDomain   string
 	Endpoint         string
@@ -41,6 +42,7 @@ func (c *Config) Client() (*OPCClient, error) {
 	config := opc.Config{
 		IdentityDomain: &c.IdentityDomain,
 		Username:       &c.User,
+		ContainerPath:  &c.ContainerPath,
 		Password:       &c.Password,
 		APIEndpoint:    u,
 		MaxRetries:     &c.MaxRetries,

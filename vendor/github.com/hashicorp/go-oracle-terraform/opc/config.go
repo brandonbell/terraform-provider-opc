@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Username       *string
 	Password       *string
+        ContainerPath  *string
 	IdentityDomain *string
 	APIEndpoint    *url.URL
 	MaxRetries     *int

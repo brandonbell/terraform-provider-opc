@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+        "log"
 	"strings"
 )
 
@@ -59,6 +60,7 @@ type CreateIPAssociationInput struct {
 
 // CreateIPAssociation creates a new IP association with the supplied vcable and parentpool.
 func (c *IPAssociationsClient) CreateIPAssociation(input *CreateIPAssociationInput) (*IPAssociationInfo, error) {
+        log.Printf("[DEBUG] VCable CreateIPAssociation: %s", c.getQualifiedName(input.VCable))       
 	input.VCable = c.getQualifiedName(input.VCable)
 	input.ParentPool = c.getQualifiedParentPoolName(input.ParentPool)
 	var assocInfo IPAssociationInfo

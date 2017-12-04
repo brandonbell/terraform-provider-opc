@@ -2,6 +2,7 @@ package opc
 
 import (
 	"fmt"
+        "log"
 
 	"github.com/hashicorp/go-oracle-terraform/client"
 	"github.com/hashicorp/go-oracle-terraform/compute"
@@ -47,6 +48,8 @@ func resourceOPCSecurityAssociationCreate(d *schema.ResourceData, meta interface
 	vcable := d.Get("vcable").(string)
 	seclist := d.Get("seclist").(string)
 
+        log.Printf("[DEBUG] Create Security Assoc: %s %s %s", name, vcable, seclist)
+
 	input := compute.CreateSecurityAssociationInput{
 		Name:    name,
 		SecList: seclist,
@@ -86,6 +89,7 @@ func resourceOPCSecurityAssociationRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
+        log.Printf("[DEBUG] Vcable OPC Read %s", result.VCable)
 	d.Set("name", result.Name)
 	d.Set("seclist", result.SecList)
 	d.Set("vcable", result.VCable)

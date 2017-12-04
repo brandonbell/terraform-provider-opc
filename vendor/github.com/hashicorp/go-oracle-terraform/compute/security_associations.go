@@ -1,5 +1,7 @@
 package compute
 
+import "log"
+
 // SecurityAssociationsClient is a client for the Security Association functions of the Compute API.
 type SecurityAssociationsClient struct {
 	ResourceClient
@@ -49,7 +51,8 @@ func (c *SecurityAssociationsClient) CreateSecurityAssociation(createInput *Crea
 	if createInput.Name != "" {
 		createInput.Name = c.getQualifiedName(createInput.Name)
 	}
-	createInput.VCable = c.getQualifiedName(createInput.VCable)
+	createInput.VCable = c.getQualifiedVCableName(createInput.VCable)
+        log.Printf("[DEBUG] Create Sec Assoc VCable: %s", c.getQualifiedVCableName(createInput.VCable))
 	createInput.SecList = c.getQualifiedName(createInput.SecList)
 
 	var assocInfo SecurityAssociationInfo
@@ -74,6 +77,8 @@ func (c *SecurityAssociationsClient) GetSecurityAssociation(getInput *GetSecurit
 		return nil, err
 	}
 
+        log.Printf("[DEBUG] assocInfo: %s", assocInfo.VCable)
+
 	return c.success(&assocInfo)
 }
 
@@ -90,6 +95,8 @@ func (c *SecurityAssociationsClient) DeleteSecurityAssociation(deleteInput *Dele
 }
 
 func (c *SecurityAssociationsClient) success(assocInfo *SecurityAssociationInfo) (*SecurityAssociationInfo, error) {
-	c.unqualify(&assocInfo.Name, &assocInfo.SecList, &assocInfo.VCable)
+	//c.unqualify(&assocInfo.Name, &assocInfo.SecList, &assocInfo.VCable)
+        log.Printf("[DEBUG] Success VCable: %s", &assocInfo.VCable)
+	c.unqualify(&assocInfo.Name, &assocInfo.SecList)
 	return assocInfo, nil
 }

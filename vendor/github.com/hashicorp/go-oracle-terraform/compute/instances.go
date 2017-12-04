@@ -252,10 +252,6 @@ type NetworkingInfo struct {
 	// Required
 	IPNetwork string `json:"ipnetwork,omitempty"`
 	// IP Network only.
-	// Set interface as default gateway for all traffic
-	// Optional
-	IsDefaultGateway bool `json:"is_default_gateway,omitempty"`
-	// IP Network only.
 	// The hexadecimal MAC Address of the interface
 	// Optional
 	MACAddress string `json:"address,omitempty"`
@@ -324,7 +320,7 @@ func (c *InstancesClient) CreateInstance(input *CreateInstanceInput) (*InstanceI
 
 	input.Networking = c.qualifyNetworking(input.Networking)
 
-	input.Name = fmt.Sprintf(CMP_QUALIFIED_NAME, c.getUserName(), input.Name)
+	input.Name = fmt.Sprintf(CMP_QUALIFIED_NAME, c.getContainerPath(), input.Name)
 
 	plan := LaunchPlanInput{
 		Instances: []CreateInstanceInput{*input},
@@ -407,6 +403,7 @@ func (c *InstancesClient) GetInstance(input *GetInstanceInput) (*InstanceInfo, e
 	}
 
 	var responseBody InstanceInfo
+        c.client.DebugLogString(fmt.Sprintf("[DEBUG] inputString() %s", input.String()))
 	if err := c.getResource(input.String(), &responseBody); err != nil {
 		return nil, err
 	}
@@ -418,10 +415,13 @@ func (c *InstancesClient) GetInstance(input *GetInstanceInput) (*InstanceInfo, e
 	// The returned 'Name' attribute is the fully qualified instance name + "/" + ID
 	// Split these out to accurately populate the fields
 	nID := strings.Split(c.getUnqualifiedName(responseBody.Name), "/")
+      
+        c.client.DebugLogString(fmt.Sprintf("[DEBUG] Name %s", nID[0]))
+        c.client.DebugLogString(fmt.Sprintf("[DEBUG] ID %s", nID[1]))
 	responseBody.Name = nID[0]
 	responseBody.ID = nID[1]
 
-	c.unqualify(&responseBody.VCableID)
+//	c.unqualify(&responseBody.VCableID)
 
 	// Unqualify SSH Key names
 	sshKeyNames := []string{}
@@ -467,7 +467,7 @@ func (c *InstancesClient) UpdateInstance(input *UpdateInstanceInput) (*InstanceI
 		return nil, errors.New("Both instance name and ID need to be specified")
 	}
 
-	input.Name = fmt.Sprintf(CMP_QUALIFIED_NAME, c.getUserName(), input.Name)
+	input.Name = fmt.Sprintf(CMP_QUALIFIED_NAME, c.getContainerPath(), input.Name)
 
 	var responseBody InstanceInfo
 	if err := c.updateResource(input.String(), input, &responseBody); err != nil {

@@ -18,6 +18,7 @@ const DEFAULT_MAX_RETRIES = 1
 type Client struct {
 	IdentityDomain *string
 	UserName       *string
+        ContainerPath  *string
 	Password       *string
 	APIEndpoint    *url.URL
 	httpClient     *http.Client
@@ -32,6 +33,7 @@ func NewClient(c *opc.Config) (*Client, error) {
 		IdentityDomain: c.IdentityDomain,
 		UserName:       c.Username,
 		Password:       c.Password,
+                ContainerPath:  c.ContainerPath,
 		APIEndpoint:    c.APIEndpoint,
 		httpClient:     c.HTTPClient,
 		MaxRetries:     c.MaxRetries,

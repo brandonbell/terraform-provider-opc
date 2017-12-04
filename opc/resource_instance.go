@@ -62,7 +62,7 @@ func resourceInstance() *schema.Resource {
 			"instance_attributes": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
+				ForceNew:     false,
 				ValidateFunc: validation.ValidateJsonString,
 			},
 
@@ -92,7 +92,7 @@ func resourceInstance() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-
+			
 			"desired_state": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -132,13 +132,6 @@ func resourceInstance() *schema.Resource {
 						"ip_network": {
 							// Required for an IP Network Interface
 							Type:     schema.TypeString,
-							ForceNew: true,
-							Optional: true,
-						},
-
-						"is_default_gateway": {
-							// Optional, IP Network only
-							Type:     schema.TypeBool,
 							ForceNew: true,
 							Optional: true,
 						},
@@ -459,7 +452,7 @@ func resourceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		Name: name,
 	}
 
-	log.Printf("[DEBUG] Reading state of instance %s", name)
+	log.Printf("[DEBUG] Reading state of instance %s, %s", name, d.Id())
 	result, err := computeClient.GetInstance(input)
 	if err != nil {
 		// Instance doesn't exist
@@ -776,7 +769,6 @@ func validateSharedNetwork(ni map[string]interface{}) error {
 	// The following attributes _cannot_ be set for a shared network:
 	// - "ip_address"
 	// - "ip_network"
-	// - "is_default_gateway"
 	// - "mac_address"
 	// - "vnic"
 	// - "vnic_sets"
@@ -789,7 +781,6 @@ func validateSharedNetwork(ni map[string]interface{}) error {
 	nilAttrs := []string{
 		"ip_address",
 		"ip_network",
-		"is_default_gateway",
 		"mac_address",
 		"vnic",
 	}
@@ -810,9 +801,9 @@ func validateSharedNetwork(ni map[string]interface{}) error {
 func readIPNetworkFromConfig(ni map[string]interface{}) (compute.NetworkingInfo, error) {
 	info := compute.NetworkingInfo{}
 	// Validate the IP Network
-	if err := validateIPNetwork(ni); err != nil {
-		return info, err
-	}
+//	if err := validateIPNetwork(ni); err != nil {
+//		return info, err
+//	}
 	// Populate fields
 	if v, ok := ni["ip_network"].(string); ok && v != "" {
 		info.IPNetwork = v
@@ -830,10 +821,6 @@ func readIPNetworkFromConfig(ni map[string]interface{}) (compute.NetworkingInfo,
 
 	if v, ok := ni["ip_address"].(string); ok && v != "" {
 		info.IPAddress = v
-	}
-
-	if v, ok := ni["is_default_gateway"].(bool); ok {
-		info.IsDefaultGateway = v
 	}
 
 	if v, ok := ni["mac_address"].(string); ok && v != "" {
@@ -921,7 +908,6 @@ func readNetworkInterfaces(d *schema.ResourceData, ifaces map[string]compute.Net
 			return err
 		}
 		res["index"] = indexInt
-		res["is_default_gateway"] = iface.IsDefaultGateway
 
 		// Set the proper attributes for this specific network interface
 		if iface.DNS != nil {

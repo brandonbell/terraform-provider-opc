@@ -17,6 +17,13 @@ func Provider() terraform.ResourceProvider {
 				Description: "The user name for OPC API operations.",
 			},
 
+			"containerpath": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OPC_CONTAINER_PATH", nil),
+				Description: "Path for containers.",
+			},
+
 			"password": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -100,7 +107,8 @@ func Provider() terraform.ResourceProvider {
 			"opc_compute_snapshot":                resourceOPCSnapshot(),
 			"opc_storage_container":               resourceOPCStorageContainer(),
 			"opc_storage_object":                  resourceOPCStorageObject(),
-			"opc_database_service_instance":       resourceOPCDatabaseServiceInstance(),
+			// Unable to test
+			// "opc_database_service_instance":       resourceOPCDatabaseServiceInstance(),
 		},
 
 		ConfigureFunc: providerConfigure,
@@ -110,6 +118,7 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		User:             d.Get("user").(string),
+		ContainerPath:    d.Get("containerpath").(string),
 		Password:         d.Get("password").(string),
 		IdentityDomain:   d.Get("identity_domain").(string),
 		Endpoint:         d.Get("endpoint").(string),
